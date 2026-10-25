@@ -1,0 +1,8 @@
+{
+  "short_name": "TradeX",
+  "name": "TradeX | Stock Trading Platform",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}
