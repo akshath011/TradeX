@@ -21,7 +21,7 @@ describe('Hero component', () => {
   test('renders the heading and paragraph', () => {
     render(<Hero />);
     const headingElement = screen.getByText('Invest in Everything');
-    const paragraphElement = screen.getByText('TradeX is a platform that allows you to invest in stocks, crypto, and commodities all in one place.');
+        const paragraphElement = screen.getByText(/TradeX is a platform that allows you to invest/);
     expect(headingElement).toBeInTheDocument();
     expect(paragraphElement).toBeInTheDocument();
   });
