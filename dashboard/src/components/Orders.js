@@ -22,7 +22,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-const API = "http://localhost:3002";
+const API = process.env.REACT_APP_API_URL || "http://localhost:3002";;
 
 const Orders = () => {
   const [allOrders, setAllOrders] = useState([]);

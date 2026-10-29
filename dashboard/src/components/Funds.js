@@ -92,7 +92,7 @@
 // import React, { useState, useEffect } from "react";
 // import axios from "axios";
 
-// const API = "http://localhost:3002";
+// const API = process.env.REACT_APP_API_URL || "http://localhost:3002";
 
 // const round2 = (n) => Math.round(Number(n) * 100) / 100;
 
@@ -436,7 +436,7 @@ import axios from "axios";
 import { useAuth } from "./AuthContext";
 import OpenAccountModal from "./OpenAccountModal";
 
-const API = "http://localhost:3002";
+const API = process.env.REACT_APP_API_URL || "http://localhost:3002";;
 
 const round2 = (n) => Math.round(Number(n) * 100) / 100;
 

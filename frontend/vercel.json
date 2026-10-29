@@ -1,4 +1,9 @@
 {
-  "buildCommand": "CI=false npm run build",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "buildCommand": "CI=false REACT_APP_DASHBOARD_URL=/dashboard npm run build",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://tradex-kdeq.onrender.com/:path*" },
+    { "source": "/dashboard", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

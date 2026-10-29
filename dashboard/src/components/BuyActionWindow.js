@@ -80,7 +80,7 @@ import { useAuth } from "./AuthContext";
 
 import "./BuyActionWindow.css";
 
-const API = "http://localhost:3002";
+const API = process.env.REACT_APP_API_URL || "http://localhost:3002";;
 
 const BuyActionWindow = ({ uid, mode = "BUY" }) => {
   const [stockQuantity, setStockQuantity] = useState(1);

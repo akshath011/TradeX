@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
-export const API = "http://localhost:3002";
+export const API = process.env.REACT_APP_API_URL || "http://localhost:3002";;
 
 // Send the login cookie with every request to the backend
 axios.defaults.withCredentials = true;
