@@ -34,9 +34,11 @@ function Navbar() {
         >
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0 d-flex flex-row flex-wrap justify-content-center">
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" to="/signup">
-                Signup
-              </Link>
+              <a
+  className="nav-link active"
+  href={process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001"}>
+  Dashboard
+</a>
             </li>
             <li className="nav-item">
               <Link className="nav-link active" aria-current="page" to="/about">
