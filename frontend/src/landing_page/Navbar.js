@@ -1,5 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";  
+import { Link, NavLink } from "react-router-dom";
+
+// "nav-active" is styled orange in index.css
+const navClass = ({ isActive }) => "nav-link" + (isActive ? " nav-active" : "");
 
 function Navbar() {
   return (
@@ -35,30 +38,31 @@ function Navbar() {
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0 d-flex flex-row flex-wrap justify-content-center">
             <li className="nav-item">
               <a
-  className="nav-link active"
-  href={process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001"}>
-  Dashboard
-</a>
+                className="nav-link"
+                href={process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001"}
+              >
+                Dashboard
+              </a>
             </li>
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" to="/about">
+              <NavLink className={navClass} to="/about">
                 About
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" to="/products">
-                Products  
-              </Link>
+              <NavLink className={navClass} to="/products">
+                Products
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" to="/pricing">
+              <NavLink className={navClass} to="/pricing">
                 Pricing
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" to="/support">
+              <NavLink className={navClass} to="/support">
                 Support
-              </Link>
+              </NavLink>
             </li>
           </ul>
         </div>

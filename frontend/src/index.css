@@ -1,27 +1,13 @@
-/* body {
-  margin: 0;
-  padding: 0;
-  background-color: white;
-  color: black;
-
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-    'Helvetica Neue', sans-serif;
-
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Navbar links: orange on hover and for the page you're on */
+.navbar .nav-link {
+  transition: color 0.15s ease;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.navbar .nav-link:hover,
+.navbar .nav-link:focus,
+.navbar .nav-link.nav-active {
+  color: #ff5722 !important;
 }
-
-.nav-link{
-  margin-left: 20px;
-} */
-
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
