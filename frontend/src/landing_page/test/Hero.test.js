@@ -11,11 +11,9 @@ describe('Hero component', () => {
     expect(heroElement).toHaveAttribute('src', 'media/homeHero.png');
   });
 
-  test('renders the sign up component', () => {
+  test('does not render a sign up button', () => {
     render(<Hero />);
-    const signUpElement = screen.getByText('Sign Up');
-    expect(signUpElement).toBeInTheDocument();
-    expect(signUpElement).toHaveClass('btn btn-primary fs-5 mb-5');
+    expect(screen.queryByText('Sign Up')).not.toBeInTheDocument();
   });
   
   test('renders the heading and paragraph', () => {
