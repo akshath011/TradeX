@@ -48,17 +48,6 @@ const OpenAccountModal = ({ onClose, openAccount = true, title }) => {
     e.preventDefault();
     setError("");
 
-    if (tab === "signup") {
-      if (!/^[A-Za-z0-9_]{3,30}$/.test(username.trim())) {
-        setError("Username: 3 to 30 letters, numbers or underscores");
-        return;
-      }
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters");
-        return;
-      }
-    }
-
     try {
       setBusy(true);
       if (tab === "login") {
@@ -141,7 +130,7 @@ const OpenAccountModal = ({ onClose, openAccount = true, title }) => {
               autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              placeholder="Enter username"
               required
               style={inputStyle}
             />
@@ -154,15 +143,10 @@ const OpenAccountModal = ({ onClose, openAccount = true, title }) => {
             <input
               id="oa-password"
               type="password"
-              autoComplete={
-                tab === "login" ? "current-password" : "new-password"
-              }
+              autoComplete="off"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={
-                tab === "login" ? "Enter your password" : "At least 6 characters"
-              }
-              required
+              placeholder="Enter password"
               style={inputStyle}
             />
           </div>

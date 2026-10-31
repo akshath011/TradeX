@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const { UserModel } = require("../model/UserModel");
 const { createSecretToken } = require("../util/SecretToken");
@@ -10,14 +10,6 @@ const cookieOptions = {
   maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days, same as the token
 };
 
-const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
-
-const cleanUsername = (value) => value.trim().toLowerCase();
-
-// Every field must be a non-empty string (this also blocks object payloads)
-const allStrings = (...values) =>
-  values.every((v) => typeof v === "string" && v.trim() !== "");
-
 const publicUser = (user) => ({
   id: user._id,
   username: user.username,
@@ -28,97 +20,65 @@ const publicUser = (user) => ({
   },
 });
 
-module.exports.Signup = async (req, res) => {
+// DEMO MODE: any username and any password signs you in.
+// A username that does not exist yet gets an account created automatically.
+// The typed password is ignored.
+const signInAnyone = async (req, res, status, message) => {
   try {
-    const { username, password } = req.body || {};
+    const { username } = req.body || {};
 
-    if (!allStrings(username, password)) {
-      return res.status(400).json({
-        success: false,
-        message: "Username and password are required",
-      });
+    if (typeof username !== "string" || username.trim() === "") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Enter a username" });
     }
 
-    const name = cleanUsername(username);
-    if (!USERNAME_PATTERN.test(name)) {
-      return res.status(400).json({
+    const name = username.trim().toLowerCase().slice(0, 50);
+
+    let user = await UserModel.findOne({ username: name });
+
+    if (!user) {
+      try {
+        user = await UserModel.create({
+          username: name,
+          // Never used to sign in, so a random value is stored
+          password: crypto.randomBytes(16).toString("hex"),
+        });
+      } catch (error) {
+        // Two sign-ins for a brand-new name at the same moment
+        if (error.code === 11000) {
+          user = await UserModel.findOne({ username: name });
+        }
+        if (!user) throw error;
+      }
+    }
+
+    const token = createSecretToken(user._id);
+    res.cookie("token", token, cookieOptions);
+
+    res.status(status).json({
+      success: true,
+      message,
+      user: publicUser(user),
+    });
+  } catch (error) {
+    console.error(error);
+    if (error.code === 11000) {
+      return res.status(500).json({
         success: false,
         message:
-          "Username must be 3 to 30 characters: letters, numbers or underscores",
+          "The database has an old unique index. Restart the backend once to remove it.",
       });
     }
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 6 characters",
-      });
-    }
-
-    const existingUser = await UserModel.findOne({ username: name });
-    if (existingUser) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Username already taken" });
-    }
-
-    const user = await UserModel.create({ username: name, password });
-
-    const token = createSecretToken(user._id);
-    res.cookie("token", token, cookieOptions);
-
-    res.status(201).json({
-      success: true,
-      message: "Signed up successfully",
-      user: publicUser(user),
-    });
-  } catch (error) {
-    // Two signups with the same username at the same moment
-    if (error.code === 11000) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Username already taken" });
-    }
-    console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-module.exports.Login = async (req, res) => {
-  try {
-    const { username, password } = req.body || {};
+module.exports.Signup = (req, res) =>
+  signInAnyone(req, res, 201, "Signed up successfully");
 
-    if (!allStrings(username, password)) {
-      return res.status(400).json({
-        success: false,
-        message: "Username and password are required",
-      });
-    }
-
-    const user = await UserModel.findOne({ username: cleanUsername(username) });
-    const passwordMatches = user
-      ? await bcrypt.compare(password, user.password)
-      : false;
-
-    // Same message for both cases, so attackers can't tell which usernames exist
-    if (!passwordMatches) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Incorrect username or password" });
-    }
-
-    const token = createSecretToken(user._id);
-    res.cookie("token", token, cookieOptions);
-
-    res.status(200).json({
-      success: true,
-      message: "Logged in successfully",
-      user: publicUser(user),
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
+module.exports.Login = (req, res) =>
+  signInAnyone(req, res, 200, "Logged in successfully");
 
 // The cookie is httpOnly, so the frontend can't delete it. The server has to.
 module.exports.Logout = (req, res) => {
@@ -132,7 +92,7 @@ module.exports.Me = (req, res) => {
   res.json({ success: true, user: publicUser(req.user) });
 };
 
-// Authorization: only the signed-in user can open or see their own account
+// Only the signed-in user can open or see their own account
 module.exports.OpenCommodityAccount = async (req, res) => {
   try {
     const user = await UserModel.findById(req.user._id);
@@ -156,28 +116,7 @@ module.exports.OpenCommodityAccount = async (req, res) => {
       message: "Commodity account is active",
       user: publicUser(user),
     });
-  // } catch (error) {
-  //   console.error(error);
-  //   res.status(500).json({ success: false, message: "Server error" });
-  // }
-      } catch (error) {
-    if (error.code === 11000) {
-      console.error("Duplicate key error:", error.keyPattern);
-
-      // Only a clash on the username means the name is really taken
-      if (error.keyPattern && error.keyPattern.username) {
-        return res
-          .status(409)
-          .json({ success: false, message: "Username already taken" });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: `Database has an old unique index on: ${Object.keys(
-          error.keyPattern || {}
-        ).join(", ")}. Drop it in MongoDB Atlas.`,
-      });
-    }
+  } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
