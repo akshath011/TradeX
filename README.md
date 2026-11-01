@@ -11,6 +11,26 @@ A full-stack stock trading simulator inspired by Zerodha, with a landing page, a
 >
 > The API runs on Render's free plan, so the first request after a quiet period can take 30 to 60 seconds while the server wakes up.
 
+## Screenshots
+
+### Funds
+
+![Funds page](docs/funds.png)
+
+Signed-in users can add and withdraw money. Every change shows up in the **Recent activity** panel on the right and in the transaction history, labelled with the username of whoever made it. The Equity summary on the left updates straight away. Signed-out visitors don't see the Add funds and Withdraw buttons.
+
+### Holdings
+
+![Holdings page](docs/holdings.png)
+
+The holdings view lists each position with its quantity, average cost, current value and profit or loss, and summarises total investment, current value and P&L. A bar chart compares stock prices, and a doughnut chart in the watchlist sidebar shows how the watchlist is spread across stocks.
+
+### Landing page
+
+![Landing page](docs/landing-page.png)
+
+A multi-page marketing site (Home, About, Products, Pricing, Support). The **Dashboard** link in the navbar opens the trading app, and links turn orange on hover and for the page you're on. Inside the dashboard, **Return To Home Page** brings you back.
+
 ## Features
 
 - **Sessions:** sign-in creates a JWT stored in an httpOnly cookie, so browser scripts can't read it. The server verifies it on every protected request.
@@ -82,13 +102,14 @@ You need Node.js and a MongoDB Atlas connection string.
 
 ## Project structure
 
-```
+
 TradeX/
 ├── frontend/    landing page
 ├── dashboard/   trading dashboard
 ├── backend/     Express API (routes, controllers, models, middleware)
+├── docs/        README screenshots
 └── .github/workflows/ci-cd.yml
-```
+
 
 ## Known limitations
 
