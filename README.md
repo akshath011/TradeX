@@ -2,6 +2,64 @@
 
 A full-stack stock trading simulator inspired by Zerodha, with a landing page, a trading dashboard and a REST API.
 
+## How it works
+
+### Authentication
+
+- **Sessions:** signing in creates a signed JWT that holds the user's id and expires after 3 days. It's stored in an **httpOnly cookie**, so scripts running in the browser can't read it, with `SameSite=Lax` and the `Secure` flag in production.
+- **Auth middleware:** a `requireAuth` Express middleware reads the cookie, verifies the token's signature and expiry, loads the user, and attaches it to the request. Any failure returns `401`.
+- **Protected actions:** buying, selling, adding funds and withdrawing funds all require a valid session. The server enforces this on the API, so calling the endpoints directly without signing in fails too.
+- **Trusted identity:** the username saved on each order and transaction comes from the verified token, never from the request body, so it can't be spoofed.
+- **Session restore and logout:** the dashboard calls `GET /auth/me` on load to restore a signed-in session. Logout clears the cookie on the server.
+- **Frontend:** a React context holds the signed-in user. Signed-out visitors still see the Buy and Sell buttons, but clicking one opens the login popup, and the Add funds and Withdraw buttons appear only after sign-in. An expired session resets the page to the signed-out view.
+- **Demo mode:** the live site accepts any username and password, and a new username creates an account automatically, so reviewers can try the app without registering. The password is not checked. The earlier version, with bcrypt-hashed passwords and unique usernames, is in the Git history.
+
+### API
+
+An Express REST API backed by MongoDB Atlas through Mongoose. It is the only way the React apps reach the database, which keeps the connection string on the server and puts validation and authorization in one place.
+
+| Endpoint | Purpose | Sign-in required |
+|---|---|---|
+| `POST /auth/signup`, `POST /auth/login` | Sign in (demo mode) | No |
+| `POST /auth/logout` | Clear the session cookie | No |
+| `GET /auth/me` | Return the signed-in user | Yes |
+| `GET /allHoldings`, `GET /allPositions`, `GET /allOrders` | Read portfolio data | No |
+| `GET /funds` | Balance and transaction history | No |
+| `POST /newOrder` | Place a buy or sell order | **Yes** |
+| `POST /funds/add`, `POST /funds/withdraw` | Add or withdraw funds | **Yes** |
+
+- **Validation:** orders must have mode `BUY` or `SELL`, a whole-number quantity of 1 or more, and a price above 0. Bad input returns `400`.
+- **Atomic withdrawals:** the balance check is part of the database update, so simultaneous requests can't take the balance below zero.
+- **Status codes:** `200` or `201` on success, `400` for invalid input, `401` when not signed in, `500` for server errors.
+- **Request path in production:** the browser calls `/api/...`, Vercel forwards the request to the Express server on Render, and Render talks to MongoDB Atlas. Because the browser only talks to one address, the session cookie stays first-party and no CORS setup is needed.
+
+### Testing
+
+- **Tools:** Jest with React Testing Library and jest-dom.
+- **What's covered:** component tests for the landing page hero (`frontend/src/landing_page/test/Hero.test.js`) check that it renders, that the heading and paragraph appear, and that the removed Sign Up button is gone.
+- **In CI:** the tests run on every push, and a failing test blocks the deployment.
+- **Not covered yet:** the backend API and the dashboard have no automated tests. Next steps are Jest and Supertest tests for the protected routes (`401` without a session), order validation, and the overdraft check.
+
+### CI/CD
+
+**CI (Continuous Integration)** runs on every push and pull request to `main`, using GitHub Actions:
+
+1. Installs the backend and syntax-checks it.
+2. Installs, tests and builds the landing page.
+3. Installs and builds the dashboard with production settings.
+
+**CD (Continuous Deployment)** runs on pushes to `main`, and only if CI passed:
+
+1. Builds the dashboard and the landing page.
+2. Places the dashboard under `/dashboard` and deploys both together to Vercel as one site.
+3. The Render backend is set to deploy only after the CI checks pass.
+
+**Why it matters:**
+
+- A broken change never reaches the live site. A failing test stops the pipeline before deployment.
+- Builds are reproducible, because `npm ci` installs the exact versions from the lock files.
+- Deploys need no manual steps, and the Vercel token and project IDs are stored as GitHub secrets, never in the code.
+
 ![CI/CD](https://github.com/akshath011/TradeX/actions/workflows/ci-cd.yml/badge.svg)
 
 **Live demo:** https://tradex-landing-beta.vercel.app
